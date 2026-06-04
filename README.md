@@ -172,7 +172,7 @@ Utilizados para armazenar informações de:
 * Hóspedes;
 * Quartos;
 * Reservas;
-* Hospedagens.
+* Estadias.
 
 ---
 
