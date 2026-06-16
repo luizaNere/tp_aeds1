@@ -4,7 +4,7 @@
 
 O **Gerenciador de Quartos de Pousada** é um sistema desenvolvido em **C++** com o objetivo de auxiliar na administração de uma pousada, permitindo o controle de quartos, hóspedes, reservas e hospedagens.
 
-O sistema foi desenvolvido como trabalho final da disciplina **Algoritmos e Estruturas de Dados**, aplicando conceitos fundamentais de programação, como vetores, matrizes, registros, funções, estruturas condicionais e de repetição.
+O sistema foi desenvolvido como trabalho prático da disciplina **Algoritmos e Estruturas de Dados**, aplicando conceitos fundamentais como vetores, matrizes, registros, funções, estruturas condicionais e de repetição.
 
 ---
 
@@ -38,7 +38,6 @@ Automatizar e organizar as principais atividades de uma pousada, oferecendo func
 
   * Número do quarto;
   * Andar;
-  * Tipo do quarto;
   * Capacidade máxima de hóspedes;
   * Valor da diária;
   * Situação atual (Disponível, Reservado ou Ocupado).
