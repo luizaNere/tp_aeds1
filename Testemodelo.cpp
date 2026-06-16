@@ -8,37 +8,44 @@ using namespace std;
 // Definição das dimensões da pousada (Ex: 3 andares, 5 quartos por andar)
 const int ANDARES = 3;
 const int QUARTOS = 5;
-const float VALOR_DIARIA = 150.00; // Valor padrão da diária
+const int MAX_CAPACIDADE = 4;
 
 // STRUCTS (Registros)
+struct Data {
+    int dia;
+    int mes;
+    int ano;
+};
+
 struct Hospede {
     string nome;
     string cpf;
-    string dataNascimento;
+    Data nascimento;
     string telefone;
 };
 
 struct Hospedagem {
     int numeroQuarto;
     int andar;
-    Hospede cliente;
-    int qtdeDiarias;
-    bool ativa;       // true se o hospede já fez check-in
-    bool reserva;     // true se for apenas uma reserva futura
+    Hospede hospede;
+    Data entrada;
+    Data saida;
+    bool ativa = false;       // true se o hospede já fez check-in
+    bool reserva = false;     // true se for apenas uma reserva futura
 };
 
 struct Quarto {
     int numero;
     int andar;
-    string tipo;       // Ex: Standard, Luxo
+    string tipo;  // Padrão ou Premium (com varanda/vista para o mar)
     int capacidade;
     float valorDiaria;
-    string situacao;   // "Livre", "Ocupado" ou "Reservado"
+    int situacao;   // 1 = "Livre", 2 = "Ocupado", 3 = "Reservado"
 };
 
 // MATRIZ para o Prédio e VETOR para o Histórico/Lista de Hospedagens
 Quarto pousada[ANDARES][QUARTOS];
-vector<Hospedagem> listaHospedagens;
+Hospedagem hospedagens[ANDARES*QUARTOS];
 
 // PROTÓTIPOS DAS FUNÇÕES
 void inicializarPousada();
@@ -64,16 +71,13 @@ int main() {
     return 0;
 }
 
-// Inicializa a matriz do prédio com configurações padrão
 void inicializarPousada() {
     for (int i = 0; i < ANDARES; i++) {
         for (int j = 0; j < QUARTOS; j++) {
             pousada[i][j].andar = i + 1;
             pousada[i][j].numero = ((i + 1) * 100) + (j + 1); // Ex: Quarto 101, 102, 201...
-            pousada[i][j].tipo = "Standard";
-            pousada[i][j].capacidade = 4; // Capacidade máxima padrão
-            pousada[i][j].valorDiaria = VALOR_DIARIA;
-            pousada[i][j].situacao = "Livre";
+            pousada[i][j].situacao = 1;
+            pousada[i][j].capacidade = MAX_CAPACIDADE;
         }
     }
 }
@@ -119,16 +123,37 @@ void cadastrarQuartos() {
     
     int andarIdx = (num / 100) - 1;
     int quartoIdx = (num % 100) - 1;
+    int erro = 0;
     
     // Validação se o quarto existe na matriz
     if (andarIdx >= 0 && andarIdx < ANDARES && quartoIdx >= 0 && quartoIdx < QUARTOS) {
-        cout << "Tipo do Quarto (atual: " << pousada[andarIdx][quartoIdx].tipo << "): ";
+        cout << "Tipo do Quarto (Padrão ou Premium): ";
         cin.ignore();
         getline(cin, pousada[andarIdx][quartoIdx].tipo);
-        cout << "Capacidade Máxima de Hóspedes: ";
-        cin >> pousada[andarIdx][quartoIdx].capacidade;
-        cout << "Valor da Diária: R$ ";
-        cin >> pousada[andarIdx][quartoIdx].valorDiaria;
+        do {
+            erro = 0;
+            if (pousada[andarIdx][quartoIdx].tipo == "Padrão" || 
+                pousada[andarIdx][quartoIdx].tipo == "padrão" || 
+                pousada[andarIdx][quartoIdx].tipo == "Padrao" ||
+                pousada[andarIdx][quartoIdx].tipo == "padrao") {
+                    pousada[andarIdx][quartoIdx].valorDiaria = 150.00;
+            } else if (pousada[andarIdx][quartoIdx].tipo == "Premium" || 
+                    pousada[andarIdx][quartoIdx].tipo == "premium") {
+                    pousada[andarIdx][quartoIdx].valorDiaria = 250.00;
+            } else {
+                cout << "\nTipo inválido!" << endl;
+                erro = 1;
+            }
+        } while(erro == 1);
+
+        do {
+            cout << "Capacidade de Hóspedes: ";
+            cin >> pousada[andarIdx][quartoIdx].capacidade;
+            if (pousada[andarIdx][quartoIdx].capacidade > MAX_CAPACIDADE) {
+                cout << "\nO valor excede a capacidade máxima dos quartos!" << endl;
+            }
+        } while(pousada[andarIdx][quartoIdx].capacidade > MAX_CAPACIDADE);
+
         cout << "Quarto configurado com sucesso!\n";
     } else {
         cout << "Erro: Quarto não encontrado!\n";
@@ -138,7 +163,12 @@ void cadastrarQuartos() {
 // 2. Realização de reservas antes do check-in
 void realizarReserva() {
     int num;
+    Data hoje;
+    char barra;
     cout << "\n--- REALIZAR RESERVA ANTECIPADA ---\n";
+    cout << "\nDigite a data de hoje (DD/MM/AAAA): ";
+    cin >> hoje.dia >> barra >> hoje.mes >> barra >> hoje.ano;
+
     cout << "Digite o número do quarto desejado: ";
     cin >> num;
 
@@ -151,9 +181,14 @@ void realizarReserva() {
     }
 
     // Validação de segurança no momento da reserva
-    if (pousada[andarIdx][quartoIdx].situacao != "Livre") {
-        cout << "Erro: Este quarto já está " << pousada[andarIdx][quartoIdx].situacao << "!\n";
-        return;
+    if (pousada[andarIdx][quartoIdx].situacao != 1) {
+        if(pousada[andarIdx][quartoIdx].situacao == 2) {
+            cout << "Erro: Este quarto já está ocupado!\n";
+            return;
+        } else if(pousada[andarIdx][quartoIdx].situacao == 3) {
+            cout << "Erro: Este quarto já está reservado!\n";
+            return;
+        }
     }
 
     Hospedagem novaReserva;
@@ -161,20 +196,33 @@ void realizarReserva() {
     novaReserva.numeroQuarto = num;
     
     cout << "Nome do Hóspede: ";
-    getline(cin, novaReserva.cliente.nome);
+    getline(cin, novaReserva.hospede.nome);
     cout << "CPF: ";
-    getline(cin, novaReserva.cliente.cpf);
+    getline(cin, novaReserva.hospede.cpf);
+    cout << "Data de nascimento (DD/MM/AAAA): ";
+    cin >> novaReserva.hospede.nascimento.dia >> barra >> 
+           novaReserva.hospede.nascimento.mes >> barra >> 
+           novaReserva.hospede.nascimento.ano;
+    cin.ignore();
     cout << "Telefone: ";
-    getline(cin, novaReserva.cliente.telefone);
-    cout << "Quantidade prevista de diárias: ";
-    cin >> novaReserva.qtdeDiarias;
+    getline(cin, novaReserva.hospede.telefone);
+    cout << "Data de entrada (DD/MM/AAAA): ";
+    cin >> novaReserva.entrada.dia >> barra
+        >> novaReserva.entrada.mes >> barra 
+        >> novaReserva.entrada.ano;
+
+    cout << "Data de saída (DD/MM/AAAA): ";
+    cin >> novaReserva.saida.dia >> barra
+        >> novaReserva.saida.mes >> barra 
+        >> novaReserva.saida.ano;
 
     novaReserva.ativa = false;
     novaReserva.reserva = true;
 
     // Atualiza a situação na matriz do prédio
-    pousada[andarIdx][quartoIdx].situacao = "Reservado";
-    listaHospedagens.push_back(novaReserva);
+    pousada[andarIdx][quartoIdx].situacao = 3;
+    
+    hospedagens[andarIdx*quartoIdx] = novaReserva;
 
     cout << "Reserva efetuada com sucesso para o Quarto " << num << "!\n";
 }
@@ -192,14 +240,21 @@ void converterReservaCheckin() {
         cout << "Digite o CPF do titular da reserva: ";
         getline(cin, cpfBusca);
 
-        for (size_t i = 0; i < listaHospedagens.size(); i++) {
-            if (listaHospedagens[i].cliente.cpf == cpfBusca && listaHospedagens[i].reserva) {
-                int a = listaHospedagens[i].andar;
-                int q = (listaHospedagens[i].numeroQuarto % 100) - 1;
+        for (int i = 0; i < (ANDARES*QUARTOS); i++) {
+            if (hospedagens[i].hospede.cpf == cpfBusca && hospedagens[i].reserva) {
+                int a = hospedagens[i].andar;
+                int q = (hospedagens[i].numeroQuarto % 100) - 1;
 
-                cout << "Reserva localizada! Quarto " << listaHospedagens[i].numeroQuarto << "\n";
-                cout << "Deseja ajustar a quantidade de diárias? (Atual: " << listaHospedagens[i].qtdeDiarias << "). Digite a nova quantidade ou o mesmo valor: ";
-                cin >> listaHospedagens[i].qtdeDiarias;
+                cout << "Reserva localizada! Quarto " << hospedagens[i].numeroQuarto << "\n";
+                cout << "Deseja ajustar a data de saída? (S ou N): ";
+                char sn, barra;
+                cin >> sn;
+                if(sn == 'S' || sn == 's') {
+                    cout << "Digite a nova data de saída (DD/MM/AAAA): ";
+                    cin >> hospedagens[i].saida.dia >> barra
+                        >> hospedagens[i].saida.mes >> barra
+                        >> hospedagens[i].saida.ano;
+                }
                 
                 int hospedes;
                 cout << "Quantidade de hóspedes que vão entrar no quarto: ";
@@ -211,9 +266,9 @@ void converterReservaCheckin() {
                     return;
                 }
 
-                listaHospedagens[i].reserva = false;
-                listaHospedagens[i].ativa = true;
-                pousada[a][q].situacao = "Ocupado";
+                hospedagens[i].reserva = false;
+                hospedagens[i].ativa = true;
+                pousada[a][q].situacao = 2;
 
                 cout << "Check-in da reserva concluído com sucesso!\n";
                 return;
@@ -227,6 +282,11 @@ void converterReservaCheckin() {
 
 void realizarCheckinDireto() {
     int num;
+    char barra;
+    Data hoje;
+    cout  << "Digite a data de hoje (DD/MM/AAAA): ";
+    cin >> hoje.dia >> barra >> hoje.mes >> barra >> hoje.mes;
+
     cout << "Digite o número do quarto para Check-in imediato: ";
     cin >> num;
     cin.ignore();
@@ -240,9 +300,14 @@ void realizarCheckinDireto() {
     }
 
     // Validação imposta pelo professor: Impedir check-in em quarto ocupado/reservado
-    if (pousada[andarIdx][quartoIdx].situacao != "Livre") {
-        cout << "Erro: Quarto indisponível. Situação atual: " << pousada[andarIdx][quartoIdx].situacao << "\n";
-        return;
+    if (pousada[andarIdx][quartoIdx].situacao != 1) {
+        if(pousada[andarIdx][quartoIdx].situacao == 2) {
+            cout << "Erro: Este quarto já está ocupado!\n";
+            return;
+        } else if(pousada[andarIdx][quartoIdx].situacao == 3) {
+            cout << "Erro: Este quarto já está reservado!\n";
+            return;
+        }
     }
 
     int hospedes;
@@ -258,37 +323,60 @@ void realizarCheckinDireto() {
     Hospedagem h;
     h.andar = andarIdx;
     h.numeroQuarto = num;
-    cout << "Nome do Hóspede: "; getline(cin, h.cliente.nome);
-    cout << "CPF: "; getline(cin, h.cliente.cpf);
-    cout << "Telefone: "; getline(cin, h.cliente.telefone);
-    cout << "Quantidade de diárias: "; cin >> h.qtdeDiarias;
+    cout << "Nome do Hóspede: "; 
+    getline(cin, h.hospede.nome);
+    cout << "CPF: "; 
+    getline(cin, h.hospede.cpf);
+    cout << "Telefone: "; 
+    getline(cin, h.hospede.telefone);
+    cout << "Data de entrada (DD/MM/AAAA): ";
+    cin >> h.entrada.dia >> barra
+        >> h.entrada.mes >> barra 
+        >> h.entrada.ano;
+    cout << "Data de saída (DD/MM/AAAA): ";
+    cin >> h.saida.dia >> barra
+        >> h.saida.mes >> barra 
+        >> h.saida.ano;
 
     h.ativa = true;
     h.reserva = false;
-    pousada[andarIdx][quartoIdx].situacao = "Ocupado";
-    
-    listaHospedagens.push_back(h);
+    pousada[andarIdx][quartoIdx].situacao = 2;
+    hospedagens[andarIdx*quartoIdx] = h;
     cout << "Check-in direto realizado com sucesso!\n";
 }
 
 // 4. Alterar dados de um hóspede antes do check-out
 void alterarDados() {
     string cpfBusca;
+    char barra;
+    bool erro = true;
     cout << "\n--- ALTERAR DADOS DO HÓSPEDE / HOSPEDAGEM ---\n";
     cout << "Digite o CPF do Hóspede: ";
     getline(cin, cpfBusca);
 
-    for (size_t i = 0; i < listaHospedagens.size(); i++) {
-        if (listaHospedagens[i].cliente.cpf == cpfBusca && (listaHospedagens[i].ativa || listaHospedagens[i].reserva)) {
-            cout << "Modificando dados de: " << listaHospedagens[i].cliente.nome << "\n";
-            cout << "Novo Nome: "; getline(cin, listaHospedagens[i].cliente.nome);
-            cout << "Novo Telefone: "; getline(cin, listaHospedagens[i].cliente.telefone);
-            cout << "Nova quantidade de diárias: "; cin >> listaHospedagens[i].qtdeDiarias;
+    for (int i = 0; i < (QUARTOS*ANDARES); i++) {
+        if (hospedagens[i].hospede.cpf == cpfBusca && hospedagens[i].reserva) {
+            cout << "Modificando dados de: " << hospedagens[i].hospede.nome << "\n";
+            cout << "Novo Nome: "; 
+            getline(cin, hospedagens[i].hospede.nome);
+            cout << "Novo Telefone: "; 
+            getline(cin, hospedagens[i].hospede.telefone);
+            cout << "Nova data de entrada (DD/MM/AAAA): ";
+            cin >> hospedagens[i].entrada.dia >> barra
+                >> hospedagens[i].entrada.mes >> barra 
+                >> hospedagens[i].entrada.ano;
+            cout << "Nova data de saída (DD/MM/AAAA): ";
+            cin >> hospedagens[i].saida.dia >> barra
+                >> hospedagens[i].saida.mes >> barra 
+                >> hospedagens[i].saida.ano;
             cout << "Dados corrigidos e atualizados!\n";
+            erro = false;
             return;
         }
     }
-    cout << "Hóspede ativo ou reserva não localizada.\n";
+    if(erro){
+        cout << "Hóspede ativo ou reserva não localizada.\n";
+    }
 }
 
 // 5. Emissão de resumo da hospedagem no Check-out e cálculo com descontos
@@ -301,34 +389,37 @@ void realizarCheckout() {
     int andarIdx = (num / 100) - 1;
     int quartoIdx = (num % 100) - 1;
 
-    for (size_t i = 0; i < listaHospedagens.size(); i++) {
-        if (listaHospedagens[i].numeroQuarto == num && listaHospedagens[i].ativa) {
-            float valorBruto = listaHospedagens[i].qtdeDiarias * pousada[andarIdx][quartoIdx].valorDiaria;
+    for (int i = 0; i < (ANDARES*QUARTOS); i++) {
+        if (hospedagens[i].numeroQuarto == num && hospedagens[i].ativa) {
+            int qtDiarias = hospedagens[i].saida.dia - hospedagens[i].entrada.dia;
+            float valorBruto = qtDiarias * pousada[andarIdx][quartoIdx].valorDiaria;
             float desconto = 0.0;
 
-            // Regra de negócio: Desconto para estadias longas
-            if (listaHospedagens[i].qtdeDiarias >= 7) {
+            // Desconto para estadias longas
+            if (qtDiarias >= 14) {
+                desconto = valorBruto * 0.20; // 20% de desconto para mais de duas semanas
+            } else if (qtDiarias >= 7) {
                 desconto = valorBruto * 0.10; // 10% de desconto para mais de uma semana
             }
 
             float valorFinal = valorBruto - desconto;
 
-            // EXIBIÇÃO DO RESUMO EXIGIDO NA IMAGEM
+            // Relatório da Hospedagem
             cout << "\n====================================\n";
             cout << "        RESUMO DA HOSPEDAGEM        \n";
             cout << "====================================\n";
-            cout << "Titular: " << listaHospedagens[i].cliente.nome << "\n";
-            cout << "CPF: " << listaHospedagens[i].cliente.cpf << "\n";
+            cout << "Titular: " << hospedagens[i].hospede.nome << "\n";
+            cout << "CPF: " << hospedagens[i].hospede.cpf << "\n";
             cout << "Quarto Utilizado: " << num << " (Andar " << andarIdx + 1 << ")\n";
-            cout << "Quantidade de Diárias: " << listaHospedagens[i].qtdeDiarias << "\n";
+            cout << "Quantidade de Diárias: " << qtDiarias << "\n";
             cout << "Valor Bruto: R$ " << valorBruto << "\n";
             cout << "Desconto Aplicado: R$ " << desconto << "\n";
             cout << "VALOR FINAL A PAGAR: R$ " << valorFinal << "\n";
             cout << "====================================\n";
 
             // Liberação física e lógica
-            pousada[andarIdx][quartoIdx].situacao = "Livre";
-            listaHospedagens[i].ativa = false; // Finalizada
+            pousada[andarIdx][quartoIdx].situacao = 1; // Quarto Livre
+            hospedagens[i].ativa = false; // Finalizada
             return;
         }
     }
@@ -338,25 +429,49 @@ void realizarCheckout() {
 // 6. Consulta de quartos por número, andar ou situação
 void consultarQuartos() {
     cout << "\n--- CONSULTA FILTRADA DE QUARTOS ---\n";
-    cout << "Filtrar por:\n1. Numero do Quarto\n2. Andar\n3. Situacao (Livre/Ocupado/Reservado)\nEscolha: ";
+    cout << "Filtrar por:\n1. Numero do Quarto\n2. Andar\n3. Situacao (1: Livre, 2: Ocupado, 3: Reservado)\n3. Período\nEscolha: ";
     int filtro;
     cin >> filtro;
     cin.ignore();
 
     if (filtro == 1) {
         int num;
-        cout << "Digite o número: "; cin >> num;
-        int a = (num / 100) - 1; int q = (num % 100) - 1;
+        cout << "Digite o número: "; 
+        cin >> num;
+        int a = (num / 100) - 1; 
+        int q = (num % 100) - 1;
         if (a >= 0 && a < ANDARES && q >= 0 && q < QUARTOS) {
-            cout << "Quarto " << num << " | Tipo: " << pousada[a][q].tipo << " | Cap: " << pousada[a][q].capacidade << " | Status: " << pousada[a][q].situacao << " | Diária: R$ " << pousada[a][q].valorDiaria << "\n";
-        } else cout << "Quarto não existe.\n";
+            cout << "Quarto " << num << " | Tipo: " << pousada[a][q].tipo 
+                 << " | Capacidade: " << pousada[a][q].capacidade 
+                 << " | Diária: R$ " << pousada[a][q].valorDiaria;
+            if (pousada[a][q].situacao == 1) {
+                cout << " | Status: Livre";
+            } else if (pousada[a][q].situacao == 2) {
+                cout << " | Status: Ocupado";
+            } else {
+                cout << " | Status: Reservado";
+            }
+
+        } else 
+            cout << "Quarto não existe.\n";
     } 
     else if (filtro == 2) {
         int andar;
-        cout << "Digite o andar: "; cin >> andar;
+        cout << "Digite o andar: "; 
+        cin >> andar;
         if (andar >= 1 && andar <= ANDARES) {
             for (int j = 0; j < QUARTOS; j++) {
-                cout << "Quarto " << pousada[andar-1][j].numero << " - Status: " << pousada[andar-1][j].situacao << "\n";
+                cout << "Quarto " << pousada[andar-1][j].numero 
+                     << " | Tipo: " << pousada[andar-1][j].tipo 
+                 << " | Capacidade: " << pousada[andar-1][j].capacidade 
+                 << " | Diária: R$ " << pousada[andar-1][j].valorDiaria;
+                if (pousada[andar-1][j].situacao == 1) {
+                    cout << " | Status: Livre";
+                } else if (pousada[andar-1][j].situacao == 2) {
+                    cout << " | Status: Ocupado";
+                } else {
+                    cout << " | Status: Reservado";
+                }
             }
         } else cout << "Andar inválido.\n";
     } 
