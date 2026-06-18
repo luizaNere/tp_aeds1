@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <ctime>
 using namespace std;
 
 //dimensões da pousada (3 andares, 5 quartos por andar)
@@ -58,6 +59,7 @@ void realizarCheckout();
 void relatorioGeral();
 void relatorioOcupacaoGanhos();
 void consultarQuartos();
+int qtDiarias(Data entrada, Data saida);
 
 int main() {
     //padroniza a saída do terminal para 2 casas decimais
@@ -87,7 +89,7 @@ void menu() {
         cout << "1. Cadastrar/Ajustar Detalhes dos Quartos\n";
         cout << "2. Realizar Reserva Antecipada\n";
         cout << "3. Realizar Check-in (ou Converter Reserva em Check-in)\n";
-        cout << "4. Alterar Dados de Hospede/Reserva\n";
+        cout << "4. Alterar Dados de Hospede/Reserva Antes do Check-out\n";
         cout << "5. Realizar Check-out (+ Emissão de Resumo)\n";
         cout << "6. Consulta de Quartos (Filtros)\n";
         cout << "7. Relatório Geral de Ocupação\n";
@@ -131,6 +133,27 @@ void menu() {
     } while (opcao != 0);
 }
 
+int qtDiarias(Data entrada, Data saida) {
+    //a biblioteca ctime calcula a quantidade de anos desde 1900
+    //por isso, subtraímos 1900 do ano da data no formato padrão
+
+    tm tmEntrada = {};
+    tmEntrada.tm_mday = entrada.dia;
+    tmEntrada.tm_mon  = entrada.mes - 1;
+    tmEntrada.tm_year = entrada.ano - 1900;
+
+    tm tmSaida = {};
+    tmSaida.tm_mday = saida.dia;
+    tmSaida.tm_mon  = saida.mes - 1;
+    tmSaida.tm_year = saida.ano - 1900;
+
+    time_t tEntrada = mktime(&tmEntrada);
+    time_t tSaida = mktime(&tmSaida);
+
+    double diffSegundos = difftime(tSaida, tEntrada); //difftime calcula a diferença em segundos
+    return (int)(diffSegundos/86400); //86400s = 1 dia
+}
+
 // 1. Cadastro dos Quartos da Pousada
 void cadastrarQuartos() {
     int num;
@@ -143,6 +166,12 @@ void cadastrarQuartos() {
     
     //verificar se o quarto existe na matriz
     if (andarIdx >= 0 && andarIdx < ANDARES && quartoIdx >= 0 && quartoIdx < QUARTOS) {
+
+        if (pousada[andarIdx][quartoIdx].situacao != 1) {
+            cout << "Erro: não é possível reconfigurar um quarto ocupado ou reservado!\n";
+            return;
+        }
+
         cout << "Tipo do Quarto (Padrão ou Premium): ";
         cin.ignore();
         getline(cin, pousada[andarIdx][quartoIdx].tipo);
@@ -165,8 +194,11 @@ void cadastrarQuartos() {
             cin >> pousada[andarIdx][quartoIdx].capacidade;
             if (pousada[andarIdx][quartoIdx].capacidade > MAX_CAPACIDADE) {
                 cout << "\nO valor excede a capacidade máxima dos quartos!" << endl;
+            } else if (pousada[andarIdx][quartoIdx].capacidade < 1) {
+                cout << "\nA capacidade deve ser de pelo menos 1 hóspede!" << endl;
             }
-        } while(pousada[andarIdx][quartoIdx].capacidade > MAX_CAPACIDADE);
+        } while (pousada[andarIdx][quartoIdx].capacidade > MAX_CAPACIDADE || 
+                pousada[andarIdx][quartoIdx].capacidade < 1);
 
         cout << "Quarto configurado com sucesso!\n";
     } else {
@@ -226,10 +258,20 @@ void realizarReserva() {
         >> novaReserva.entrada.mes >> barra 
         >> novaReserva.entrada.ano;
 
+    if (qtDiarias(hoje, novaReserva.entrada) < 0) {
+        cout << "Erro: a data de entrada não pode ser anterior a hoje!\n";
+        return;
+    }
+
     cout << "Data de saída (DD/MM/AAAA): ";
     cin >> novaReserva.saida.dia >> barra
         >> novaReserva.saida.mes >> barra 
         >> novaReserva.saida.ano;
+
+    if (qtDiarias(novaReserva.entrada, novaReserva.saida) <= 0) {
+        cout << "Erro: a data de saída deve ser posterior à data de entrada!\n";
+        return;
+    }
 
     novaReserva.ativa = false;
     novaReserva.reserva = true;
@@ -343,16 +385,32 @@ void realizarCheckinDireto() {
     getline(cin, h.hospede.nome);
     cout << "CPF: "; 
     getline(cin, h.hospede.cpf);
+    cout << "Data de nascimento (DD/MM/AAAA): ";
+    cin >> h.hospede.nascimento.dia >> barra >> 
+           h.hospede.nascimento.mes >> barra >> 
+           h.hospede.nascimento.ano;
+    cin.ignore();
     cout << "Telefone: "; 
     getline(cin, h.hospede.telefone);
     cout << "Data de entrada (DD/MM/AAAA): ";
     cin >> h.entrada.dia >> barra
         >> h.entrada.mes >> barra 
         >> h.entrada.ano;
+    
+    if (qtDiarias(hoje, h.entrada) < 0) {
+        cout << "Erro: a data de entrada não pode ser anterior a hoje!\n";
+        return;
+    }
+
     cout << "Data de saída (DD/MM/AAAA): ";
     cin >> h.saida.dia >> barra
         >> h.saida.mes >> barra 
         >> h.saida.ano;
+
+    if (qtDiarias(h.entrada, h.saida) <= 0) {
+        cout << "Erro: a data de saída deve ser posterior à data de entrada!\n";
+        return;
+    }
 
     h.ativa = true;
     h.reserva = false;
@@ -371,7 +429,7 @@ void alterarDados() {
     getline(cin, cpfBusca);
 
     for (int i = 0; i < (QUARTOS*ANDARES); i++) {
-        if (hospedagens[i].hospede.cpf == cpfBusca && hospedagens[i].reserva) {
+        if (hospedagens[i].hospede.cpf == cpfBusca && (hospedagens[i].reserva || hospedagens[i].ativa)) {
             cout << "Modificando dados de: " << hospedagens[i].hospede.nome << "\n";
             cout << "Deseja alterar nome? (S/N)" << endl;
             cin >> escolha;
@@ -425,14 +483,16 @@ void realizarCheckout() {
 
     for (int i = 0; i < (ANDARES*QUARTOS); i++) {
         if (hospedagens[i].numeroQuarto == num && hospedagens[i].ativa) {
-            int qtDiarias = hospedagens[i].saida.dia - hospedagens[i].entrada.dia;
-            float valorBruto = qtDiarias * pousada[andarIdx][quartoIdx].valorDiaria;
+            int diarias = qtDiarias(hospedagens[i].entrada, hospedagens[i].saida);
+            float valorBruto = diarias * pousada[andarIdx][quartoIdx].valorDiaria;
             float desconto = 0.0;
 
-            // Desconto para estadias longas
-            if (qtDiarias >= 14) {
+            if (diarias <= 0) {
+                cout << "Erro: data de saída inválida para este hóspede!\n";
+                return;
+            } else if (diarias >= 14) {
                 desconto = valorBruto * 0.20; // 20% de desconto para mais de duas semanas
-            } else if (qtDiarias >= 7) {
+            } else if (diarias >= 7) {
                 desconto = valorBruto * 0.10; // 10% de desconto para mais de uma semana
             }
 
@@ -445,7 +505,7 @@ void realizarCheckout() {
             cout << "Titular: " << hospedagens[i].hospede.nome << "\n";
             cout << "CPF: " << hospedagens[i].hospede.cpf << "\n";
             cout << "Quarto Utilizado: " << num << " (Andar " << andarIdx + 1 << ")\n";
-            cout << "Quantidade de Diárias: " << qtDiarias << "\n";
+            cout << "Quantidade de Diárias: " << diarias << "\n";
             cout << "Valor Bruto: R$ " << valorBruto << "\n";
             cout << "Desconto Aplicado: R$ " << desconto << "\n";
             cout << "VALOR FINAL A PAGAR: R$ " << valorFinal << "\n";
@@ -479,13 +539,14 @@ void consultarQuartos() {
                  << " | Capacidade: " << pousada[a][q].capacidade 
                  << " | Diária: R$ " << pousada[a][q].valorDiaria;
             if (pousada[a][q].situacao == 1) {
-                cout << " | Status: Livre";
+                cout << " | Status: Livre" << endl;
             } else if (pousada[a][q].situacao == 2) {
-                cout << " | Status: Ocupado";
+                cout << " | Status: Ocupado" << endl;
+            } else if (pousada[a][q].situacao == 3) {
+                cout << " | Status: Reservado" << endl;
             } else {
-                cout << " | Status: Reservado";
+                cout << "Opção de filtro inválida!\n";
             }
-
         } else 
             cout << "Quarto não existe.\n";
     } 
@@ -573,11 +634,16 @@ void relatorioOcupacaoGanhos() {
 
     //busca no vetor/histórico para obter os dados financeiros
     for (int i = 0; i < (QUARTOS*ANDARES); i++) {
-        if(hospedagens[i].entrada.mes == mes && hospedagens[i].saida.mes == mes) {
+        if(hospedagens[i].entrada.mes <= mes && hospedagens[i].saida.mes >= mes) {
             int a = hospedagens[i].andar;
             int q = (hospedagens[i].numeroQuarto % 100) - 1;
-            int diarias = hospedagens[i].saida.dia - hospedagens[i].entrada.dia;
-            
+            int diarias = qtDiarias(hospedagens[i].entrada, hospedagens[i].saida);
+
+            if (diarias <= 0) {
+                //ignora registros com datas inconsistentes (pula essa iteração e faz i+1)
+                continue; 
+            }
+
             float vBruto = diarias * pousada[a][q].valorDiaria;
             if (diarias >= 14) {
                     vBruto -= vBruto * 0.20; // 20% de desconto para mais de duas semanas
