@@ -1,14 +1,13 @@
 #include <iostream>
 #include <string>
-#include <vector>
 #include <iomanip>
-
 using namespace std;
 
-// Definição das dimensões da pousada (Ex: 3 andares, 5 quartos por andar)
+//dimensões da pousada (3 andares, 5 quartos por andar)
 const int ANDARES = 3;
 const int QUARTOS = 5;
-const int MAX_CAPACIDADE = 4;
+//capacidade máxima (padrão) dos quartos (pode ser alterada no momento do cadastro)
+const int MAX_CAPACIDADE = 4; 
 
 // STRUCTS (Registros)
 struct Data {
@@ -37,13 +36,13 @@ struct Hospedagem {
 struct Quarto {
     int numero;
     int andar;
-    string tipo;  // Padrão ou Premium (com varanda/vista para o mar)
+    string tipo;  // Padrão ou Premium (com varanda e vista para o mar)
     int capacidade;
     float valorDiaria;
     int situacao;   // 1 = "Livre", 2 = "Ocupado", 3 = "Reservado"
 };
 
-// MATRIZ para o Prédio e VETOR para o Histórico/Lista de Hospedagens
+// MATRIZ para o prédio e ARRAY para a lista de hospedagens
 Quarto pousada[ANDARES][QUARTOS];
 Hospedagem hospedagens[ANDARES*QUARTOS];
 
@@ -60,12 +59,11 @@ void relatorioGeral();
 void relatorioOcupacaoGanhos();
 void consultarQuartos();
 
-// FUNÇÃO PRINCIPAL
 int main() {
-    // Configura a saída do terminal para 2 casas decimais em valores monetários
+    //padroniza a saída do terminal para 2 casas decimais
     cout << fixed << setprecision(2);
     
-    inicializarPousada();
+    inicializarPousada(); //atribuir valores padrão para os quartos
     menu();
     
     return 0;
@@ -75,7 +73,7 @@ void inicializarPousada() {
     for (int i = 0; i < ANDARES; i++) {
         for (int j = 0; j < QUARTOS; j++) {
             pousada[i][j].andar = i + 1;
-            pousada[i][j].numero = ((i + 1) * 100) + (j + 1); // Ex: Quarto 101, 102, 201...
+            pousada[i][j].numero = ((i + 1) * 100) + (j + 1); // Ex: Quarto 101, 203, 302...
             pousada[i][j].situacao = 1;
             pousada[i][j].capacidade = MAX_CAPACIDADE;
         }
@@ -85,36 +83,55 @@ void inicializarPousada() {
 void menu() {
     int opcao;
     do {
-        cout << "\n===== GERENCIADOR DE POUSADA =====\n";
+        cout << "\n----------POUSADA BEIRA MAR----------\n";
         cout << "1. Cadastrar/Ajustar Detalhes dos Quartos\n";
         cout << "2. Realizar Reserva Antecipada\n";
-        cout << "3. Confirmar Check-in (ou Converter Reserva)\n";
+        cout << "3. Realizar Check-in Check-in (ou Converter Reserva em Check-in)\n";
         cout << "4. Alterar Dados de Hospede/Reserva\n";
-        cout << "5. Realizar Check-out (Emissão de Resumo)\n";
+        cout << "5. Realizar Check-out (+ Emissão de Resumo)\n";
         cout << "6. Consulta de Quartos (Filtros)\n";
         cout << "7. Relatório Geral de Ocupação\n";
         cout << "8. Relatório Financeiro e de Ganhos\n";
         cout << "0. Sair\n";
-        cout << "Escolha uma opcao: ";
+        cout << "Escolha uma opção: ";
         cin >> opcao;
         cin.ignore(); // Limpa o buffer do teclado
 
         switch(opcao) {
-            case 1: cadastrarQuartos(); break;
-            case 2: realizarReserva(); break;
-            case 3: converterReservaCheckin(); break;
-            case 4: alterarDados(); break;
-            case 5: realizarCheckout(); break;
-            case 6: consultarQuartos(); break;
-            case 7: relatorioGeral(); break;
-            case 8: relatorioOcupacaoGanhos(); break;
-            case 0: cout << "Encerrando o sistema...\n"; break;
-            default: cout << "Opcao inválida!\n";
+            case 1: 
+                cadastrarQuartos(); 
+                break;
+            case 2: 
+                realizarReserva(); 
+                break;
+            case 3: 
+                converterReservaCheckin(); 
+                break;
+            case 4: 
+                alterarDados(); 
+                break;
+            case 5: 
+                realizarCheckout(); 
+                break;
+            case 6: 
+                consultarQuartos(); 
+                break;
+            case 7: 
+                relatorioGeral(); 
+                break;
+            case 8: 
+                relatorioOcupacaoGanhos(); 
+                break;
+            case 0: 
+                cout << "Encerrando o sistema...\n"; 
+                break;
+            default: 
+                cout << "Opcao inválida!\n";
         }
     } while (opcao != 0);
 }
 
-// 1. Cadastro/Configuração dos Quartos da Pousada
+// 1. Cadastro dos Quartos da Pousada
 void cadastrarQuartos() {
     int num;
     cout << "\n--- CONFIGURAR QUARTO ---\n";
@@ -123,28 +140,25 @@ void cadastrarQuartos() {
     
     int andarIdx = (num / 100) - 1;
     int quartoIdx = (num % 100) - 1;
-    int erro = 0;
     
-    // Validação se o quarto existe na matriz
+    //verificar se o quarto existe na matriz
     if (andarIdx >= 0 && andarIdx < ANDARES && quartoIdx >= 0 && quartoIdx < QUARTOS) {
         cout << "Tipo do Quarto (Padrão ou Premium): ";
         cin.ignore();
         getline(cin, pousada[andarIdx][quartoIdx].tipo);
-        do {
-            erro = 0;
-            if (pousada[andarIdx][quartoIdx].tipo == "Padrão" || 
-                pousada[andarIdx][quartoIdx].tipo == "padrão" || 
-                pousada[andarIdx][quartoIdx].tipo == "Padrao" ||
-                pousada[andarIdx][quartoIdx].tipo == "padrao") {
-                    pousada[andarIdx][quartoIdx].valorDiaria = 150.00;
-            } else if (pousada[andarIdx][quartoIdx].tipo == "Premium" || 
-                    pousada[andarIdx][quartoIdx].tipo == "premium") {
-                    pousada[andarIdx][quartoIdx].valorDiaria = 250.00;
-            } else {
-                cout << "\nTipo inválido!" << endl;
-                erro = 1;
-            }
-        } while(erro == 1);
+        
+        if (pousada[andarIdx][quartoIdx].tipo == "Padrão" || 
+            pousada[andarIdx][quartoIdx].tipo == "padrão" || 
+            pousada[andarIdx][quartoIdx].tipo == "Padrao" ||
+            pousada[andarIdx][quartoIdx].tipo == "padrao") {
+                pousada[andarIdx][quartoIdx].valorDiaria = 150.00;
+        } else if (pousada[andarIdx][quartoIdx].tipo == "Premium" || 
+                pousada[andarIdx][quartoIdx].tipo == "premium") {
+                pousada[andarIdx][quartoIdx].valorDiaria = 250.00;
+        } else {
+            cout << "\nTipo inválido!" << endl;
+            return;
+        }
 
         do {
             cout << "Capacidade de Hóspedes: ";
@@ -195,7 +209,8 @@ void realizarReserva() {
     novaReserva.andar = andarIdx;
     novaReserva.numeroQuarto = num;
     
-    cout << "Nome do Hóspede: ";
+    cin.ignore();
+    cout << "Nome do Hóspede Titular: ";
     getline(cin, novaReserva.hospede.nome);
     cout << "CPF: ";
     getline(cin, novaReserva.hospede.cpf);
@@ -222,7 +237,8 @@ void realizarReserva() {
     // Atualiza a situação na matriz do prédio
     pousada[andarIdx][quartoIdx].situacao = 3;
     
-    hospedagens[andarIdx*quartoIdx] = novaReserva;
+    //evitar problemas caso o andarIdx seja 0.
+    hospedagens[andarIdx * QUARTOS + quartoIdx] = novaReserva;
 
     cout << "Reserva efetuada com sucesso para o Quarto " << num << "!\n";
 }
@@ -285,7 +301,7 @@ void realizarCheckinDireto() {
     char barra;
     Data hoje;
     cout  << "Digite a data de hoje (DD/MM/AAAA): ";
-    cin >> hoje.dia >> barra >> hoje.mes >> barra >> hoje.mes;
+    cin >> hoje.dia >> barra >> hoje.mes >> barra >> hoje.ano;
 
     cout << "Digite o número do quarto para Check-in imediato: ";
     cin >> num;
@@ -341,14 +357,14 @@ void realizarCheckinDireto() {
     h.ativa = true;
     h.reserva = false;
     pousada[andarIdx][quartoIdx].situacao = 2;
-    hospedagens[andarIdx*quartoIdx] = h;
+    hospedagens[andarIdx * QUARTOS + quartoIdx] = h;
     cout << "Check-in direto realizado com sucesso!\n";
 }
 
 // 4. Alterar dados de um hóspede antes do check-out
 void alterarDados() {
     string cpfBusca;
-    char barra;
+    char barra, escolha;
     bool erro = true;
     cout << "\n--- ALTERAR DADOS DO HÓSPEDE / HOSPEDAGEM ---\n";
     cout << "Digite o CPF do Hóspede: ";
@@ -357,18 +373,36 @@ void alterarDados() {
     for (int i = 0; i < (QUARTOS*ANDARES); i++) {
         if (hospedagens[i].hospede.cpf == cpfBusca && hospedagens[i].reserva) {
             cout << "Modificando dados de: " << hospedagens[i].hospede.nome << "\n";
-            cout << "Novo Nome: "; 
-            getline(cin, hospedagens[i].hospede.nome);
-            cout << "Novo Telefone: "; 
-            getline(cin, hospedagens[i].hospede.telefone);
-            cout << "Nova data de entrada (DD/MM/AAAA): ";
-            cin >> hospedagens[i].entrada.dia >> barra
-                >> hospedagens[i].entrada.mes >> barra 
-                >> hospedagens[i].entrada.ano;
-            cout << "Nova data de saída (DD/MM/AAAA): ";
-            cin >> hospedagens[i].saida.dia >> barra
-                >> hospedagens[i].saida.mes >> barra 
-                >> hospedagens[i].saida.ano;
+            cout << "Deseja alterar nome? (S/N)" << endl;
+            cin >> escolha;
+            if(escolha == 'S' || escolha == 's') {
+                cin.ignore();
+                cout << "Novo Nome: "; 
+                getline(cin, hospedagens[i].hospede.nome);
+            }
+            cout << "Deseja alterar telefone? (S/N)" << endl;
+            cin >> escolha;
+            if(escolha == 'S' || escolha == 's') {
+                cin.ignore();
+                cout << "Novo Telefone: "; 
+                getline(cin, hospedagens[i].hospede.telefone);
+            }
+            cout << "Deseja alterar data de entrada? (S/N)" << endl;
+            cin >> escolha;
+            if(escolha == 'S' || escolha == 's') {
+                cout << "Nova data de entrada (DD/MM/AAAA): ";
+                cin >> hospedagens[i].entrada.dia >> barra
+                    >> hospedagens[i].entrada.mes >> barra 
+                    >> hospedagens[i].entrada.ano;
+            }
+            cout << "Deseja alterar data de saída? (S/N)" << endl;
+            cin >> escolha;
+            if(escolha == 'S' || escolha == 's') {
+                cout << "Nova data de saída (DD/MM/AAAA): ";
+                cin >> hospedagens[i].saida.dia >> barra
+                    >> hospedagens[i].saida.mes >> barra 
+                    >> hospedagens[i].saida.ano;
+            }
             cout << "Dados corrigidos e atualizados!\n";
             erro = false;
             return;
@@ -429,7 +463,7 @@ void realizarCheckout() {
 // 6. Consulta de quartos por número, andar ou situação
 void consultarQuartos() {
     cout << "\n--- CONSULTA FILTRADA DE QUARTOS ---\n";
-    cout << "Filtrar por:\n1. Numero do Quarto\n2. Andar\n3. Situacao (1: Livre, 2: Ocupado, 3: Reservado)\n3. Período\nEscolha: ";
+    cout << "Filtrar por:\n1. Numero do Quarto\n2. Andar\n3. Situacao (1: Livre, 2: Ocupado, 3: Reservado)\nEscolha: ";
     int filtro;
     cin >> filtro;
     cin.ignore();
@@ -466,23 +500,29 @@ void consultarQuartos() {
                  << " | Capacidade: " << pousada[andar-1][j].capacidade 
                  << " | Diária: R$ " << pousada[andar-1][j].valorDiaria;
                 if (pousada[andar-1][j].situacao == 1) {
-                    cout << " | Status: Livre";
+                    cout << " | Status: Livre\n";
                 } else if (pousada[andar-1][j].situacao == 2) {
-                    cout << " | Status: Ocupado";
+                    cout << " | Status: Ocupado\n";
                 } else {
-                    cout << " | Status: Reservado";
+                    cout << " | Status: Reservado\n";
                 }
             }
         } else cout << "Andar inválido.\n";
     } 
     else if (filtro == 3) {
-        string sit;
-        cout << "Digite a situação desejada (Livre, Ocupado, Reservado): ";
-        getline(cin, sit);
+        int sit;
+        cout << "Digite a situação desejada (1: Livre, 2: Ocupado, 3: Reservado): ";
+        cin >> sit;
         for (int i = 0; i < ANDARES; i++) {
             for (int j = 0; j < QUARTOS; j++) {
                 if (pousada[i][j].situacao == sit) {
-                    cout << "Quarto " << pousada[i][j].numero << " está " << sit << "\n";
+                    if (sit == 1) {
+                        cout << "Quarto " << pousada[i][j].numero << " está livre.\n";
+                    } else if (sit == 2) {
+                        cout << "Quarto " << pousada[i][j].numero << " está ocupado.\n";
+                    } else {
+                        cout << "Quarto " << pousada[i][j].numero << " está reservado.\n";
+                    }
                 }
             }
         }
@@ -496,18 +536,24 @@ void relatorioGeral() {
 
     for (int i = 0; i < ANDARES; i++) {
         for (int j = 0; j < QUARTOS; j++) {
-            if (pousada[i][j].situacao == "Livre") livres++;
-            else if (pousada[i][j].situacao == "Ocupado") ocupados++;
-            else if (pousada[i][j].situacao == "Reservado") reservados++;
+            if (pousada[i][j].situacao == 1) { 
+                livres++;
+            } else if (pousada[i][j].situacao == 2) {
+                ocupados++;
+            } else if (pousada[i][j].situacao == 3) {
+                reservados++;
+            }
         }
     }
 
     // Conta quantos hóspedes estão registrados em estadias ativas no momento
-    for (size_t i = 0; i < listaHospedagens.size(); i++) {
-        if (listaHospedagens[i].ativa) totalHospedesAtivos++;
+    for (int i = 0; i < (QUARTOS*ANDARES); i++) {
+        if (hospedagens[i].ativa) {
+            totalHospedesAtivos++;
+        }
     }
 
-    cout << "\n--- RELATÓRIO GERAL DA POUSADA ---\n";
+    cout << "\n--- RELATÓRIO GERAL DA POUSADA BEIRA MAR---\n";
     cout << "Quartos Livres: " << livres << "\n";
     cout << "Quartos Ocupados: " << ocupados << "\n";
     cout << "Quartos Reservados: " << reservados << "\n";
@@ -516,32 +562,39 @@ void relatorioGeral() {
 
 // 8. Relatório de ocupação e ganhos simulado
 void relatorioOcupacaoGanhos() {
-    cout << "\n--- RELATÓRIO FINANCEIRO (SIMULADO DE PERÍODO) ---\n";
-    string dataInicio, dataFim;
-    cout << "Informe a data de início (DD/MM/AAAA): "; getline(cin, dataInicio);
-    cout << "Informe a data de término (DD/MM/AAAA): "; getline(cin, dataFim);
+    cout << "\n--- RELATÓRIO FINANCEIRO (SIMULADO POR MÊS) ---\n";
+    int mes;
+    cout << "Informe o mês para relatório (número): "; 
+    cin >> mes;
 
     int totalHospedagensRealizadas = 0;
     int quartosOcupadosNoPeriodo = 0;
     float totalArrecadado = 0.0;
 
-    // Varre nosso vetor/histórico para consolidar os dados financeiros
-    for (size_t i = 0; i < listaHospedagens.size(); i++) {
-        int a = listaHospedagens[i].andar;
-        int q = (listaHospedagens[i].numeroQuarto % 100) - 1;
-        
-        float vBruto = listaHospedagens[i].qtdeDiarias * pousada[a][q].valorDiaria;
-        if (listaHospedagens[i].qtdeDiarias >= 7) vBruto *= 0.90; // Aplica o desconto no cálculo
+    //busca no vetor/histórico para obter os dados financeiros
+    for (int i = 0; i < (QUARTOS*ANDARES); i++) {
+        if(hospedagens[i].entrada.mes == mes && hospedagens[i].saida.mes == mes) {
+            int a = hospedagens[i].andar;
+            int q = (hospedagens[i].numeroQuarto % 100) - 1;
+            int diarias = hospedagens[i].saida.dia - hospedagens[i].entrada.dia;
+            
+            float vBruto = diarias * pousada[a][q].valorDiaria;
+            if (diarias >= 14) {
+                    vBruto -= vBruto * 0.20; // 20% de desconto para mais de duas semanas
+            } else if (diarias >= 7) {
+                    vBruto -= vBruto * 0.10; // 10% de desconto para mais de uma semana
+            }
 
-        totalArrecadado += vBruto;
-        totalHospedagensRealizadas++;
-        if (listaHospedagens[i].ativa) {
-            quartosOcupadosNoPeriodo++;
+            totalArrecadado += vBruto;
+            totalHospedagensRealizadas++;
+
+            if (hospedagens[i].ativa) {
+                quartosOcupadosNoPeriodo++;
+            }
         }
     }
-
-    cout << "\nResultados para o período entre " << dataInicio << " e " << dataFim << ":\n";
-    cout << "Quantidade de Hospedagens Processadas: " << totalHospedagensRealizadas << "\n";
-    cout << "Quartos Ativos no Momento: " << quartosOcupadosNoPeriodo << "\n";
-    cout << "Valor Total Arrecadado/Previsto: R$ " << totalArrecadado << "\n";
+        cout << "\nResultados para o mês " << mes << " :\n";
+        cout << "Quantidade de Hospedagens Processadas: " << totalHospedagensRealizadas << "\n";
+        cout << "Quartos Ativos no Momento: " << quartosOcupadosNoPeriodo << "\n";
+        cout << "Valor Total Arrecadado/Previsto: R$ " << totalArrecadado << "\n";
 }

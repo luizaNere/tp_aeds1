@@ -1,14 +1,16 @@
-# 🏨 Gerenciador de Quartos de Pousada
+# 🏨 Gerenciador de Quartos de Pousada - Pousada Beira Mar
 
 ## 📌 Sobre o Projeto
 
-O **Gerenciador de Quartos de Pousada** é um sistema desenvolvido em **C++** com o objetivo de auxiliar na administração de uma pousada, permitindo o controle de quartos, hóspedes, reservas e hospedagens.
+O **Gerenciador de Quartos de Pousada** é um sistema desenvolvido em **C++** para auxiliar no controle de hospedagens de uma pousada.
 
-O sistema foi desenvolvido como trabalho prático da disciplina **Algoritmos e Estruturas de Dados**, aplicando conceitos fundamentais como vetores, matrizes, registros, funções, estruturas condicionais e de repetição.
+O sistema permite administrar quartos, reservas, check-ins, check-outs e relatórios de ocupação, utilizando conceitos da disciplina de **Algoritmos e Estruturas de Dados**.
+
+O projeto utiliza estruturas como matrizes, registros (`struct`), vetores, funções, condicionais e estruturas de repetição.
 
 ---
 
-## 👥 Integrantes
+# 👥 Integrantes
 
 * Giulianna Viana Santana Amendoeira
 * Luíza Castro Nere
@@ -16,268 +18,256 @@ O sistema foi desenvolvido como trabalho prático da disciplina **Algoritmos e E
 
 ---
 
-## 🎯 Objetivo
+# 🎯 Objetivo
 
-Automatizar e organizar as principais atividades de uma pousada, oferecendo funcionalidades para:
+O objetivo do sistema é informatizar o controle de uma pousada, permitindo:
 
-* Cadastro e gerenciamento de quartos;
+* Gerenciamento dos quartos;
+* Controle de disponibilidade;
 * Cadastro de hóspedes;
 * Realização de reservas;
-* Check-in e check-out;
-* Controle de ocupação;
-* Relatórios gerenciais;
-* Consulta de disponibilidade.
+* Controle de check-in e check-out;
+* Cálculo de valores de hospedagem;
+* Geração de relatórios administrativos.
 
 ---
 
-## ⚙️ Funcionalidades
+# ⚙️ Funcionalidades Implementadas
 
-### 🛏️ Gerenciamento de Quartos
+## 🛏️ Cadastro e configuração dos quartos
 
-* Cadastro de quartos contendo:
+O sistema permite configurar os quartos da pousada contendo:
 
-  * Número do quarto;
-  * Andar;
-  * Capacidade máxima de hóspedes;
-  * Valor da diária;
-  * Situação atual (Disponível, Reservado ou Ocupado).
+* Número do quarto;
+* Andar;
+* Tipo do quarto;
+* Capacidade máxima;
+* Valor da diária;
+* Situação atual.
 
-* Consulta de quartos por:
+Os quartos possuem três estados:
 
-  * Número;
-  * Andar;
-  * Situação;
-  * Período de disponibilidade.
-
----
-
-### 👤 Gerenciamento de Hóspedes
-
-* Cadastro de hóspedes;
-* Alteração de informações cadastrais;
-* Consulta de dados dos hóspedes.
-
-Dados armazenados:
-
-* Nome;
-* CPF;
-* Data de nascimento;
-* Telefone.
+* Livre;
+* Ocupado;
+* Reservado.
 
 ---
 
-### 📅 Sistema de Reservas
+# 📅 Sistema de reservas
 
-* Cadastro de reservas futuras;
-* Associação entre hóspede e quarto;
-* Definição das datas de entrada e saída previstas;
-* Controle de quartos reservados sem ocupação imediata.
+Permite realizar reservas antecipadas antes do check-in.
 
----
+A reserva armazena:
 
-### 🔑 Check-in
+* Dados do hóspede;
+* Quarto escolhido;
+* Data de entrada;
+* Data de saída.
 
-* Conversão de uma reserva em hospedagem ativa;
-* Possibilidade de atualizar informações da hospedagem no momento da entrada;
-* Alteração de:
+Durante a reserva o sistema verifica:
 
-  * Data de check-out;
-  * Quantidade de diárias;
-  * Informações do hóspede.
-
-#### Validações
-
-O sistema impede:
-
-* Reservar um quarto já ocupado;
-* Reservar um quarto já reservado para o mesmo período;
-* Realizar check-in em quarto indisponível;
-* Exceder a capacidade máxima de hóspedes do quarto.
+* Existência do quarto;
+* Disponibilidade;
+* Conflitos de ocupação.
 
 ---
 
-### 🚪 Check-out
+# 🔑 Check-in
 
-Ao finalizar uma hospedagem, o sistema:
+O sistema permite:
 
+## Conversão de reserva
+
+Uma reserva existente pode ser transformada em hospedagem ativa.
+
+Alterações permitidas:
+
+* Data de saída;
+* Informações da hospedagem.
+
+Após o check-in:
+
+```
+Reservado → Ocupado
+```
+
+---
+
+## Check-in direto
+
+Também é possível realizar hospedagem sem reserva prévia.
+
+O sistema valida:
+
+* Se o quarto está livre;
+* Se a quantidade de hóspedes respeita a capacidade máxima.
+
+---
+
+# 🚪 Check-out
+
+Ao realizar o check-out o sistema:
+
+* Finaliza a hospedagem;
 * Libera o quarto;
-* Atualiza os registros da pousada;
-* Emite um resumo da hospedagem contendo:
+* Calcula o valor da estadia.
 
-  * Dados do hóspede;
-  * Quarto utilizado;
-  * Quantidade de diárias;
-  * Valor bruto;
-  * Desconto aplicado;
-  * Valor final a pagar.
+O resumo apresentado contém:
 
----
-
-### 💰 Cálculo de Hospedagem
-
-O sistema realiza automaticamente:
-
-* Cálculo do valor total das diárias;
-* Aplicação de descontos conforme regras definidas;
-* Geração do valor final da hospedagem.
+* Nome do hóspede;
+* CPF;
+* Quarto utilizado;
+* Quantidade de diárias;
+* Valor bruto;
+* Desconto aplicado;
+* Valor final.
 
 ---
 
-### 📊 Relatórios
+# 💰 Cálculo de hospedagem
 
-#### Relatório Geral da Pousada
+O valor é calculado através de:
+
+```
+Quantidade de diárias × Valor da diária
+```
+
+Possíveis descontos:
+
+* 10% para estadias a partir de 7 dias;
+* 20% para estadias a partir de 14 dias.
+
+---
+
+# 🔎 Consulta de quartos
+
+Permite consultar quartos por:
+
+* Número;
+* Andar;
+* Situação.
+
+Exibe informações como:
+
+* Tipo;
+* Capacidade;
+* Valor da diária;
+* Status atual.
+
+---
+
+# 📊 Relatórios
+
+## Relatório geral da pousada
+
+Apresenta:
+
+* Quantidade de quartos livres;
+* Quantidade de quartos ocupados;
+* Quantidade de quartos reservados;
+* Hospedagens ativas.
+
+---
+
+## Relatório financeiro
+
+Permite consultar informações de hospedagens realizadas em determinado período mensal.
 
 Exibe:
 
-* Quantidade total de quartos;
-* Quartos disponíveis;
+* Quantidade de hospedagens;
 * Quartos ocupados;
-* Quartos reservados;
-* Total de hóspedes registrados.
-
-#### Relatório de Ocupação e Ganhos
-
-Permite informar duas datas e apresenta:
-
-* Quantidade de hospedagens realizadas;
-* Quartos ocupados no período;
-* Taxa de ocupação;
-* Valor total arrecadado.
+* Valor arrecadado.
 
 ---
 
-## 🧠 Estruturas de Dados Utilizadas
+# 🧠 Estruturas de Dados Utilizadas
 
-### Matrizes
+## Matrizes
 
-Representação física da pousada:
+A pousada é representada como uma matriz:
 
-* Linhas → Andares;
-* Colunas → Quartos.
+```
+Linhas → Andares
+Colunas → Quartos
+```
 
 Exemplo:
 
-| Andar | Quartos       |
-| ----- | ------------- |
-| 1º    | 101, 102, 103 |
-| 2º    | 201, 202, 203 |
-
----
-
-### Registros (Structs)
-
-Utilizados para armazenar informações de:
-
-* Hóspedes;
-* Quartos;
-* Reservas;
-* Estadias.
-
----
-
-### Vetores
-
-Utilizados para:
-
-* Lista de hóspedes;
-* Lista de quartos;
-* Lista de reservas;
-* Histórico de hospedagens.
-
----
-
-### Funções
-
-Exemplos:
-
-```cpp
-cadastrarQuarto();
-cadastrarHospede();
-realizarReserva();
-fazerCheckin();
-fazerCheckout();
-listarQuartos();
-consultarDisponibilidade();
-gerarRelatorio();
-calcularValor();
+```
+1º andar:
+101 | 102 | 103 | 104 | 105
 ```
 
 ---
 
-### Estruturas Condicionais
+## Structs
 
-Utilizadas para:
+São utilizadas estruturas para representar:
 
-* Validações;
-* Controle de disponibilidade;
-* Aplicação de descontos;
-* Verificação de capacidade dos quartos.
+### Quarto
 
----
+Guarda:
 
-### Estruturas de Repetição
+* Número;
+* Andar;
+* Tipo;
+* Capacidade;
+* Valor;
+* Situação.
 
-Utilizadas para:
+### Hospede
 
-* Menus;
-* Pesquisas;
-* Relatórios;
-* Percorrer vetores e matrizes.
+Guarda:
 
----
+* Nome;
+* CPF;
+* Telefone;
+* Data de nascimento.
 
-## 📋 Menu Principal
+### Hospedagem
 
-```text
-1. Cadastrar Quarto
-2. Cadastrar Hóspede
-3. Realizar Reserva
-4. Consultar Reservas
-5. Fazer Check-in
-6. Fazer Check-out
-7. Alterar Dados de Hóspede
-8. Consultar Quartos
-9. Relatório Geral da Pousada
-10. Relatório de Ocupação e Ganhos
-11. Listar Hóspedes
-12. Sair
-```
+Guarda:
+
+* Quarto;
+* Hóspede;
+* Datas;
+* Estado da hospedagem.
 
 ---
 
-## 💻 Tecnologias Utilizadas
+# 🛠️ Tecnologias utilizadas
 
 * Linguagem C++
-* Programação Estruturada
-* Compilador GCC/G++
+* Programação estruturada
 * Terminal/Console
 
 ---
 
-## 📚 Conceitos da Disciplina Aplicados
+# 📚 Conceitos aplicados
 
-✔ Variáveis e tipos de dados
+✔ Matrizes
+
+✔ Vetores
+
+✔ Registros (`struct`)
+
+✔ Funções
 
 ✔ Estruturas condicionais
 
 ✔ Estruturas de repetição
 
-✔ Vetores
-
-✔ Matrizes
-
-✔ Registros (struct)
-
-✔ Modularização com funções
-
-✔ Entrada e saída de dados
+✔ Manipulação de dados em memória
 
 ✔ Validação de informações
 
-✔ Manipulação de dados em memória
-
 ---
 
-## 📄 Observação
+# 🚀 Melhorias futuras
 
-Projeto desenvolvido exclusivamente para fins acadêmicos na disciplina de Algoritmos e Estruturas de Dados.
+* Histórico completo de hospedagens;
+* Persistência em arquivos;
+* Consulta por intervalo de datas;
+* Cadastro separado de múltiplos hóspedes por quarto;
+* Interface gráfica.
