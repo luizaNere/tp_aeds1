@@ -86,7 +86,7 @@ void menu() {
         cout << "\n----------POUSADA BEIRA MAR----------\n";
         cout << "1. Cadastrar/Ajustar Detalhes dos Quartos\n";
         cout << "2. Realizar Reserva Antecipada\n";
-        cout << "3. Realizar Check-in Check-in (ou Converter Reserva em Check-in)\n";
+        cout << "3. Realizar Check-in (ou Converter Reserva em Check-in)\n";
         cout << "4. Alterar Dados de Hospede/Reserva\n";
         cout << "5. Realizar Check-out (+ Emissão de Resumo)\n";
         cout << "6. Consulta de Quartos (Filtros)\n";
