@@ -24,7 +24,7 @@ O objetivo do sistema é informatizar o controle de uma pousada, permitindo:
 
 * Gerenciamento dos quartos;
 * Controle de disponibilidade;
-* Cadastro de hóspedes;
+* Cadastro de hóspedes durante reservas ou hospedagens;
 * Realização de reservas;
 * Controle de check-in e check-out;
 * Cálculo de valores de hospedagem;
@@ -34,7 +34,7 @@ O objetivo do sistema é informatizar o controle de uma pousada, permitindo:
 
 # ⚙️ Funcionalidades Implementadas
 
-## 🛏️ Cadastro e configuração dos quartos
+## 🛏️ Configuração de quartos existentes
 
 O sistema permite configurar os quartos da pousada contendo:
 
