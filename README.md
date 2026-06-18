@@ -261,13 +261,3 @@ Guarda:
 ✔ Manipulação de dados em memória
 
 ✔ Validação de informações
-
----
-
-# 🚀 Melhorias futuras
-
-* Histórico completo de hospedagens;
-* Persistência em arquivos;
-* Consulta por intervalo de datas;
-* Cadastro separado de múltiplos hóspedes por quarto;
-* Interface gráfica.
